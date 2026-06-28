@@ -1,64 +1,43 @@
-# Student Engagement Pipeline
+# Student Engagement Analytics Pipeline
 
-A Python rebuild of an institutional event attendance and engagement reporting
-tool, originally built in Google Apps Script for a university student
-engagement office. This project replicates the original tool's analysis
-logic and adds a new rule-based engagement flagging layer, using entirely
-**synthetic data**.
+An automated analytics pipeline that processes campus event attendance data to surface student engagement patterns, demographic participation trends, and where outreach should be targeted, built to solve a real need for a university student engagement office.
 
-> **Data notice:** All data in this repository (`data/`) is synthetically
-> generated and does not represent real students, attendance records, or
-> institutional data. The original tool processes real student records and
-> is used in production at a university; that data and that code are not
-> public. This repository demonstrates the *rebuilt pipeline's* architecture
-> and output format only.
+> **Data notice:** All data in this repository (`data/`) is synthetically generated and does not represent real students, attendance records, or institutional data. The production version of this tool processes real student records and has been used to brief university leadership; that data is not public. This repository demonstrates the pipeline's architecture and output format using synthetic data only.
 
 ## Background
 
-The original tool lived inside a Google Sheet: a student roster tab plus one
-tab per campus event, with an Apps Script macro that joined them, counted
-attendance, and generated 11 formatted report tabs with charts (by class
-year, residence hall, major, race/ethnicity, first-generation status, Pell
-Grant status, and more). It replaced a multi-hour manual cross-tabbing
-process each semester and has been used to brief university leadership on
-event participation trends.
+As a Micro-Intern in the Student Engagement department, I was asked to help answer a practical question: who is engaging with campus events, who isn't, and where should outreach and resources be targeted. Previously, answering that question meant hours of manual cross-tabbing in a spreadsheet every semester: pulling a roster, cross-referencing it against sign-in sheets from each event, and manually building breakdowns by class year, housing, major, and other demographics.
 
-This project re-architects that tool as a Python pipeline (pandas +
-matplotlib + openpyxl), and adds a capability the original tool didn't have:
-a transparent, rule-based engagement flag that surfaces which students may
-be disengaging — not just how many people attended each event.
+## What the pipeline does
+
+1. **Ingests** a student roster and a set of per-event sign-in sheets
+2. **Joins and counts** attendance per student across all tracked events
+3. **Breaks down participation** across 10+ dimensions: class year, housing type, residence hall, major, race/ethnicity, gender, first-generation status, Pell Grant status, and athlete status
+4. **Flags engagement level** for every student on the roster, using a transparent, rule-based system (see below), including students who attended zero events, the group most actionable for outreach
+5. **Outputs** a multi-sheet Excel workbook (the institutional deliverable) and a set of charts (for reporting and presentation)
 
 ## What's in this repo
 
 | File | Purpose |
 |---|---|
-| `generate_synthetic_data.py` | Generates a fake student roster + event sign-in sheets matching the original schema |
-| `load.py` | Loads roster/event data, mirrors original sheet quirks (header row offset, building code mapping) |
-| `analysis.py` | The 11 demographic breakdowns from the original tool, rebuilt in pandas |
-| `flagging.py` | **New capability** — rule-based engagement flag (0 / 1–2 / 3–4 / 5+ events attended) |
-| `export_excel.py` | Produces a downloadable multi-sheet Excel workbook |
+| `generate_synthetic_data.py` | Generates a fake student roster + event sign-in sheets for public demonstration |
+| `load.py` | Loads and cleans roster/event data |
+| `analysis.py` | Computes the demographic participation breakdowns |
+| `flagging.py` | Computes the engagement flag for every student |
+| `export_excel.py` | Produces the downloadable multi-sheet Excel workbook |
 | `charts.py` | Produces the chart images used in the project case study |
 | `main.py` | Runs the full pipeline end to end |
 
-## Why a flagging layer was added
+## The engagement flag
 
-The original tool was purely descriptive — it counted and broke down
-attendance, but never identified which individual students might need
-outreach. Adding a flag turns the tool from "how many people came" into
-"who might be falling through the cracks," which is the more actionable
-question for a student engagement office. The logic is deliberately simple
-and count-based (not a predictive model) so any staff member can audit
-exactly why a student received a given flag — important for a tool used in
-real decisions about real students.
+Every student on the roster is flagged based on the number of events they attended that semester:
 
-## Why counts instead of percentages
+- **No Engagement**: attended 0 events
+- **Low Engagement**: attended 1 to 2 events
+- **Moderate Engagement**: attended 3 to 4 events
+- **High Engagement**: attended 5+ events
 
-Early design used percentage-of-events-attended as the threshold, but with a
-small number of tracked events per semester, percentages shift meaning
-depending on how many events happened to be tracked that term (2 of 8
-events = 25%, but 2 of 15 events = 13% — the same real-world behavior gets a
-different label). Fixed event counts give a stable rule that means the same
-thing every semester and is easy to explain to non-technical staff.
+Fixed event counts were used instead of percentages so the rule stays simple, stable across semesters regardless of how many events are tracked, and easy for non-technical staff to interpret and act on.
 
 ## Running it yourself
 
@@ -68,15 +47,12 @@ python generate_synthetic_data.py   # creates data/students.csv and data/events/
 python main.py                      # runs the full pipeline
 ```
 
-Output lands in `output/`: a multi-sheet Excel workbook and a set of chart
-PNGs.
+Output lands in `output/`: a multi-sheet Excel workbook and a set of chart PNGs.
 
 ## Tools used
 
-Python, pandas, matplotlib, seaborn, openpyxl, Faker (for synthetic data
-generation)
+Python, pandas, matplotlib, seaborn, openpyxl, Faker (for synthetic data generation)
 
 ## Full case study
 
-A full write-up with sample charts and findings (using synthetic data) is
-available on my portfolio: [anikhajustin.github.io](https://anikhajustin.github.io)
+A full write-up with sample charts and findings (using synthetic data) is available on my portfolio: [anikhajustin.github.io](https://anikhajustin.github.io)
