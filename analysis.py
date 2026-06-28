@@ -10,16 +10,13 @@ def summary_metrics(roster: pd.DataFrame, events: dict) -> dict:
     """
     total_students = len(roster)
 
-    # Anyone who attended 1+ events counts as an "attendee" for the
-    # demographic breakdowns below.
+    # Anyone who attended 1+ events counts as an "attendee" for the demographic breakdowns below.
     attendees = roster[roster["events_attended"] > 0]
     total_attendees = len(attendees)
 
     total_events = len(events)
 
-    # Sum of every event's attendee list length = total sign-ins across
-    # the whole semester (one student can be counted multiple times here
-    # if they went to multiple events).
+    # Sum of every event's attendee list length = total sign-ins across the whole semester (one student can be counted multiple times here if they went to multiple events).
     total_swipes = sum(len(df) for df in events.values())
 
     return {
@@ -37,8 +34,7 @@ def event_attendance_distribution(roster: pd.DataFrame) -> pd.DataFrame:
     Runs on the FULL roster (not just attendees), so it includes the
     0-events bucket too.
     """
-    # value_counts() groups students by their event count, sort_index()
-    # keeps it in order (0, 1, 2, 3...) instead of by frequency.
+    # value_counts() groups students by their event count, sort_index() keeps it in order (0, 1, 2, 3...) instead of by frequency.
     dist = roster["events_attended"].value_counts().sort_index()
 
     out = dist.reset_index()
@@ -52,8 +48,7 @@ def by_class_year(attendees: pd.DataFrame) -> pd.DataFrame:
     counts = attendees["Class"].value_counts()
 
     rows = []
-    # Loop over a fixed order (not counts.index) so the output always
-    # shows all four years in the same order, even if one year has 0 attendees.
+    # Loop over a fixed order (not counts.index) so the output always shows all four years in the same order, even if one year has 0 attendees.
     for code in ["FR", "SO", "JR", "SR"]:
         cnt = int(counts.get(code, 0))
         rows.append({"Class Year": CLASS_LABELS[code], "Attendees": cnt})
@@ -85,8 +80,7 @@ def by_residence_hall(attendees: pd.DataFrame, roster: pd.DataFrame) -> pd.DataF
     att_counts = attendees["Housing"].value_counts()
     tot_counts = roster["Housing"].value_counts()
 
-    # Sort hall names alphabetically, but always put "Commuter" last
-    # since it's not really a "hall."
+    # Sort hall names alphabetically, but always put "Commuter" last since it's not really a "hall."
     buildings = sorted(b for b in att_counts.index if b != "Commuter")
     if "Commuter" in att_counts.index:
         buildings.append("Commuter")
@@ -147,8 +141,7 @@ def run_all_breakdowns(roster: pd.DataFrame, events: dict) -> dict[str, pd.DataF
     Runs every breakdown above and returns them as a dict keyed by report
     name, ready to be written out as Excel sheet tabs.
     """
-    # Most breakdowns only care about students who attended at least one
-    # event; compute this once and reuse it everywhere below.
+    # Most breakdowns only care about students who attended at least one event; compute this once and reuse it everywhere below.
     attendees = roster[roster["events_attended"] > 0]
 
     return {
